@@ -15,6 +15,8 @@
 #define NT_WAIT 2
 #define NT_BTN 3
 #define NT_ENDSAY 4
+#define NT_MENU 5
+#define NT_GO 6
 #define NT_DONE 0xF
 
 
@@ -29,10 +31,36 @@
     .word NT_str_\@
     .section .rodata
     .balign 4
-    .global NT_str_\@
     NT_str_\@:
         .asciiz "\str"
     .section .newtext
+.endm
+
+.macro menu title, ch1, lb1, ch2, lb2, ch3, lb3, ch4, lb4
+    .section .rodata
+    .balign 4
+    NT_menutitle_\@:
+        .asciiz "\title"
+    .balign 4
+    NT_menuchoice1_\@:
+        .asciiz "\ch1"
+    .balign 4
+    NT_menuchoice2_\@:
+        .asciiz "\ch2"
+    .balign 4
+    NT_menuchoice3_\@:
+        .asciiz "\ch3"
+    .balign 4
+    NT_menuchoice4_\@:
+        .asciiz "\ch4"
+    .section .newtext
+
+    .byte NT_MENU, 40, 0, 0
+    .word NT_menutitle_\@
+    .word NT_menuchoice1_\@, \lb1
+    .word NT_menuchoice2_\@, \lb2
+    .word NT_menuchoice3_\@, \lb3
+    .word NT_menuchoice4_\@, \lb4
 .endm
 
 .macro wait frames
@@ -43,6 +71,11 @@
 .macro button btn
     .byte NT_BTN, 4
     .half \btn
+.endm
+
+.macro go lbl
+    .byte NT_GO, 8, 0, 0
+    .word \lbl
 .endm
 
 .macro endscene

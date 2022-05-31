@@ -20,10 +20,10 @@ say "im stupid!"
 endsay
 button A_BUTTON
 
-menu "Select a choice!",
-     "games", pickA,
-     "tv", pickB,
-     "anime", pickC,
+menu "Select a choice!", \
+     "games", pickA, \
+     "tv", pickB, \
+     "anime", pickC, \
      "being lazy", pickD
 
 pickA:
@@ -39,12 +39,13 @@ pickC:
     go myTextEnd
 
 pickD:
-    say "wrong!"
+    say "please dont say you are lazy!"
     go myTextEnd
 
 
 myTextEnd:
 endsay // optimization built right in!
+button A_BUTTON
 endscene
 
 
