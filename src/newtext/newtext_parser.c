@@ -1,6 +1,8 @@
 #include <ultra64.h>
 #include "newtext.h"
+#include "sounds.h"
 #include "game/game_init.h"
+#include "audio/external.h"
 
 static char NT_TextBuffer[2048];
 static s32 NewText_TextCursor = -1;
@@ -13,6 +15,8 @@ static s32 NewText_FrameWait = -1;
 static int NewText_X = 20;
 static int NewText_Y = 20;
 
+static u32 NewText_TextSound = 0;
+
 static u32 read_u32(u8 *d) {
     return *(u32*)d;
 }
@@ -24,6 +28,10 @@ s8 NT_ReadStick() {
     return gPlayer1Controller->stickY;
 }
 
+void NewText_CopyRest(u8 *text) {
+    // strcpy(NT_TextBuffer + , text, )
+}
+
 int NewText_RenderText(u8 *text) {
     if (NewText_TextCursor == -1) NewText_TextCursor = 0;
     if (NewText_TextSubCursor == -1) NewText_TextSubCursor = NewText_TextCursor;
@@ -32,6 +40,7 @@ int NewText_RenderText(u8 *text) {
     NT_TextBuffer[NewText_TextSubCursor] = text[NewText_TextSubCursor - NewText_TextCursor];
     NT_TextBuffer[NewText_TextSubCursor + 1] = 0;
 
+    play_sound(NewText_TextSound, gGlobalSoundSource);
 
     if (NewText_TextSubCursor - NewText_TextCursor >= NewText_TextLen) {
         NewText_TextCursor = NewText_TextSubCursor;
@@ -90,9 +99,9 @@ void NT_RenderMenu(u8 *cursor) {
         }
     }
 
-    print_text_fmt_int(100, 100, "%d", curpos);
-    print_text_fmt_int(116, 100, "%d", sticklatch);
-    print_text_fmt_int(132, 100, "%d", stick);
+    // print_text_fmt_int(100, 100, "%d", curpos);
+    // print_text_fmt_int(116, 100, "%d", sticklatch);
+    // print_text_fmt_int(132, 100, "%d", stick);
 
     // // cursor clamp
     if (curpos < 0) curpos = 0;
@@ -155,12 +164,29 @@ int NewText_Parse(u8 *scene) {
         case NT_GO:
             NewText_Cursor = *(u32*)(NewText_Cursor + 4);
             break;
+        case NT_TURING:
+            u32 fp = *(u32*)(NewText_Cursor + 4);
+            if (((int (*)())fp)());
+            proceed = 1;
+            break;
+        case NT_RECALL:
+            if (NewText_RenderText(*(u32 *)(NewText_Cursor + 4))) proceed = 1;
+            break;
+        case NT_SOUND:
+            play_sound(*(u32 *)(NewText_Cursor + 4), gGlobalSoundSource);
+            proceed = 1;
+            break;
+        case NT_TXTSOUND:
+            NewText_TextSound = *(u32 *)(NewText_Cursor + 4);
+            proceed = 1;
+            break;
 
     }
 
     if (proceed) {
         NewText_Cursor += nt_cmdlen;
     }
+    append_puppyprint_log("%x", SOUND_MARIO_YAHOO);
 
     NT_KeepText();
 

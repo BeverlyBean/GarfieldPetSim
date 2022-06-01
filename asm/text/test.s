@@ -1,5 +1,7 @@
 #define NEWTEXT_ASM
 #include "newtext.h"
+#include "sounds_asm.h"
+
 newtextfile
 
 .balign 4
@@ -9,6 +11,7 @@ NT_Testscene1:
 
 // now that the boilerplate is done
 
+textsound SOUND_ACTION_TERRAIN_STEP
 
 say "hello world"
 wait 30
@@ -16,6 +19,7 @@ say "!!!"
 endsay
 
 button A_BUTTON
+// play SOUND_MARIO_YAHOO
 say "im stupid!"
 endsay
 button A_BUTTON

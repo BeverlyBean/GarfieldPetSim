@@ -17,7 +17,12 @@
 #define NT_ENDSAY 4
 #define NT_MENU 5
 #define NT_GO 6
-#define NT_DONE 0xF
+#define NT_RECALL 7
+#define NT_KEYBOARD 8
+#define NT_TURING 9
+#define NT_SOUND 10
+#define NT_TXTSOUND 11
+#define NT_DONE 15
 
 
 #ifdef NEWTEXT_ASM
@@ -76,6 +81,31 @@
 .macro go lbl
     .byte NT_GO, 8, 0, 0
     .word \lbl
+.endm
+
+.macro keyboard variable
+    .byte NT_KEYBOARD, 8, 0, 0
+    .word \variable
+.endm
+
+.macro recall variable
+    .byte NT_RECALL, 8, 0, 0
+    .word \variable
+.endm
+
+.macro call function
+    .byte NT_TURING, 8, 0, 0
+    .word \function
+.endm
+
+.macro play id
+    .byte NT_SOUND, 8, 0, 0
+    .word \id
+.endm
+
+.macro textsound id
+    .byte NT_TXTSOUND, 8, 0, 0
+    .word \id
 .endm
 
 .macro endscene

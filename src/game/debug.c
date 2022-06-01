@@ -401,9 +401,7 @@ void stub_debug_control(void) {
 
 extern u8 NT_Testscene1[];
 void try_print_debug_mario_object_info(void) {
-    if (gPlayer1Controller->buttonDown & Z_TRIG) {
-        NewText_Parse(NT_Testscene1);
-    }
+    
 }
 
 /*
