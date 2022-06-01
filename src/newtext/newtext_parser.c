@@ -4,6 +4,8 @@
 #include "game/game_init.h"
 #include "audio/external.h"
 
+#define NT_PrintFunc s2d_print_deferred
+
 static char NT_TextBuffer[2048];
 static s32 NewText_TextCursor = -1;
 static s32 NewText_TextSubCursor = -1;
@@ -59,7 +61,7 @@ int NewText_RenderText(u8 *text) {
 }
 
 void NT_KeepText(void) {
-    print_text(40, 40, NT_TextBuffer);
+    NT_PrintFunc(40, 40, NT_TextBuffer);
 }
 
 void NT_RenderMenu(u8 *cursor) {
@@ -80,14 +82,14 @@ void NT_RenderMenu(u8 *cursor) {
 
 
     // cursor
-    print_text(NewText_X - 16, NewText_Y + (16 * (curpos + 1)), "*");
+    NT_PrintFunc(NewText_X - 16, NewText_Y + (16 * (curpos + 1)), "*");
 
     // text print
-    print_text(NewText_X, NewText_Y, title);
-    print_text(NewText_X + 8, NewText_Y + 16, ch1);
-    print_text(NewText_X + 8, NewText_Y + 32, ch2);
-    print_text(NewText_X + 8, NewText_Y + 48, ch3);
-    print_text(NewText_X + 8, NewText_Y + 64, ch4);
+    NT_PrintFunc(NewText_X, NewText_Y, title);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4);
 
     // cursor movement
     s8 stick = NT_ReadStick();

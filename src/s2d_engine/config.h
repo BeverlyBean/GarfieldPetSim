@@ -15,7 +15,7 @@
  * Helpful defines to change
  ***********/
 
-#define BASE_SCALE 1.0f
+#define BASE_SCALE 0.25f
 
 /******************************
  *

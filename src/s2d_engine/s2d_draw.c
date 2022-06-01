@@ -3,7 +3,7 @@
 #include "mtx.h"
 #include "debug.h"
 
-float myScale = 1.0f;
+float myScale = BASE_SCALE;
 int myDegrees = 0;
 uObjMtx final_mtx, rot_mtx;
 int s2d_red = 255, s2d_green = 255, s2d_blue = 255, s2d_alpha = 255;

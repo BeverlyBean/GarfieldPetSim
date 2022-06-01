@@ -180,14 +180,14 @@ static int s2d_snprint(int x, int y, int align, const char *str, uObjMtx *buf, i
 						}
 					}
 
-					(x += (tbl[(int) current_char] * (BASE_SCALE * myScale)));
+					(x += (tbl[(int) current_char] * (myScale)));
 				}
 		}
 		if (*p == '\0') break;
 		p++;
 		tmp_len++;
 	} while (tmp_len < len);
-	myScale = 1.0f;
+	myScale = BASE_SCALE;
 	myDegrees = 0;
 	drop_shadow = FALSE;
 	drop_x = 0;

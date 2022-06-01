@@ -13,6 +13,7 @@ NT_Testscene1:
 
 textsound SOUND_ACTION_TERRAIN_STEP
 
+// say SCALE "25"
 say "hello world"
 wait 30
 say "!!!"

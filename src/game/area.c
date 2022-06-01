@@ -423,6 +423,15 @@ void render_game(void) {
                 gWarpTransDelay--;
             }
         }
+        s2d_init();
+        
+
+        // Allows you to print from anywhere in the game
+        // as long as this is run directly afterwards
+        s2d_handle_deferred();
+
+        // reloads the original microcode; only needed once after all prints
+        s2d_stop();
     } else {
         render_text_labels();
         if (gViewportClip != NULL) {
