@@ -82,7 +82,7 @@ void NT_RenderMenu(u8 *cursor) {
 
 
     // cursor
-    NT_PrintFunc(NewText_X - 16, NewText_Y + (16 * (curpos + 1)), "*");
+    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">");
 
     // text print
     NT_PrintFunc(NewText_X, NewText_Y, title);
@@ -98,11 +98,11 @@ void NT_RenderMenu(u8 *cursor) {
     }
     if (sticklatch == 0) {
         if (stick < -14) {
-            curpos--;
+            curpos++;
             sticklatch = 1;
         }
         if (stick > 14) {
-            curpos++;
+            curpos--;
             sticklatch = 1;
         }
     }

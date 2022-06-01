@@ -20,7 +20,7 @@ say "!!!"
 endsay
 
 button A_BUTTON
-// play SOUND_MARIO_YAHOO
+play SOUND_MARIO_YAHOO
 say "im stupid!"
 endsay
 button A_BUTTON
