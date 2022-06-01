@@ -29,7 +29,9 @@ s8 NT_ReadStick() {
 }
 
 void NewText_CopyRest(u8 *text) {
-    // strcpy(NT_TextBuffer + , text, )
+    u32 len = strlen(text + (NewText_TextSubCursor - NewText_TextCursor));
+    strcpy(NT_TextBuffer + NewText_TextSubCursor, text + (NewText_TextSubCursor - NewText_TextCursor));
+    NewText_TextSubCursor += len;
 }
 
 int NewText_RenderText(u8 *text) {
@@ -38,7 +40,11 @@ int NewText_RenderText(u8 *text) {
     if (NewText_TextLen == -1) NewText_TextLen = strlen(text);
 
     NT_TextBuffer[NewText_TextSubCursor] = text[NewText_TextSubCursor - NewText_TextCursor];
-    NT_TextBuffer[NewText_TextSubCursor + 1] = 0;
+    if (NT_ReadController() & A_BUTTON) {
+        NewText_CopyRest(text);
+    } else {
+        NT_TextBuffer[NewText_TextSubCursor + 1] = 0;
+    }
 
     play_sound(NewText_TextSound, gGlobalSoundSource);
 
@@ -186,7 +192,6 @@ int NewText_Parse(u8 *scene) {
     if (proceed) {
         NewText_Cursor += nt_cmdlen;
     }
-    append_puppyprint_log("%x", SOUND_MARIO_YAHOO);
 
     NT_KeepText();
 
