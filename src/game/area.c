@@ -425,6 +425,10 @@ void render_game(void) {
         }
         s2d_init();
         
+        extern u32 NewText_DrawingTB;
+        if (NewText_DrawingTB == TRUE) {
+            NT_DrawTextBox();
+        }
 
         // Allows you to print from anywhere in the game
         // as long as this is run directly afterwards

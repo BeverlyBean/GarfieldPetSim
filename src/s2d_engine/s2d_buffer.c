@@ -28,10 +28,11 @@ void s2d_print_deferred(int x, int y, const char *str) {
 
 void s2d_handle_deferred(void) {
 	for (int i = 0; i < s2d_charBuffer_index; i++) {
+		extern u32 NewText_CurAlign;
 		s2d_print_alloc(
 			s2d_positions[i].x,
 			s2d_positions[i].y,
-			ALIGN_LEFT,
+			NewText_CurAlign,
 			s2d_charBuffer[i]
 		);
 	}

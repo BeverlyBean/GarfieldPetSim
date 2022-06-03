@@ -13,6 +13,7 @@
 #define NT_NOP 0
 #define NT_SAY 1
 #define NT_WAIT 2
+#define NT_ALIGN 3
 #define NT_ENDSAY 4
 #define NT_MENU 5
 #define NT_GO 6
@@ -23,13 +24,36 @@
 #define NT_TXTSOUND 11
 #define NT_SAYFULL 12
 #define NT_UNSKIPPABLE 13
-#define NT_DONE 15
+#define NT_MAKETEXTBOX 14
+#define NT_TEXTBOXPOS 15
+#define NT_DONE 16
+
+#define left 0
+#define top 0
+#define middle 1
+#define bottom 2
 
 
 #ifdef NEWTEXT_ASM
 
-.macro newtextfile
+.macro scene name
 .section .newtext
+.balign 4
+.global \name
+\name:
+.endm
+
+.macro align nm
+    .byte NT_ALIGN, 4, 0, \nm
+.endm
+
+.macro textpos p
+    .byte NT_TEXTBOXPOS, 4, 0, \p
+.endm
+
+.macro maketextbox r, g, b, a
+    .byte NT_MAKETEXTBOX, 8, 0, 0
+    .byte \r, \g, \b, \a
 .endm
 
 .macro say str

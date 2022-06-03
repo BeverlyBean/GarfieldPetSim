@@ -4,6 +4,7 @@
 #include "game/game_init.h"
 #include "audio/external.h"
 #include "s2d_engine/s2d_print.h"
+#include "dialog.h"
 
 #define NT_PrintFunc s2d_print_deferred
 
@@ -20,6 +21,8 @@ static int NewText_X = 20;
 static int NewText_Y = 20;
 
 static u32 NewText_TextSound = 0;
+u32 NewText_CurAlign = ALIGN_LEFT;
+u32 NewText_DrawingTB = FALSE;
 
 char myName[] = "SUPERMARIO";
 
@@ -98,7 +101,55 @@ void NewText_SayFull(u8 *text) {
 }
 
 void NT_KeepText(void) {
-    NT_PrintFunc(40, 40, NT_TextBuffer);
+    NT_PrintFunc(NewText_X, NewText_Y, NT_TextBuffer);
+}
+
+
+
+uObjBg sprite_bg = {
+    0, 320<<2, 0<<2, 320<<2,  /* imageX, imageW, frameX, frameW */
+    0, 80<<2, 0<<2, 80<<2,  /* imageY, imageH, frameY, frameH */
+    (u64 *)&sprite_tex_0,                /* imagePtr                       */
+    G_BGLT_LOADBLOCK,     /* imageLoad */                      
+    G_IM_FMT_I,        /* imageFmt                       */
+    G_IM_SIZ_4b,         /* imageSiz                       */
+    0,                /* imagePal                       */
+    0,             /* imageFlip                      */
+    1 << 10,       /* scale W (s5.10) */
+    1 << 10,       /* scale H (s5.10) */
+    0,
+};
+Gfx sprite_init_dl[] = {
+    gsDPPipeSync(),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetAlphaCompare(G_AC_THRESHOLD),
+    gsDPSetBlendColor(0, 0, 0, 0x01),
+    gsDPSetCombineLERP(
+        TEXEL0, 0, ENVIRONMENT, 0, 0, 0, 0, TEXEL0,
+        TEXEL0, 0, ENVIRONMENT, 0, 0, 0, 0, TEXEL0
+    ),
+    gsSPEndDisplayList(),
+};
+Gfx sprite_bg_dl[] = {
+    gsDPPipeSync(),
+    gsSPDisplayList(sprite_init_dl),
+    gsDPSetCycleType(G_CYC_1CYCLE),
+    gsDPSetRenderMode(G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2),
+    gsSPObjRenderMode(G_OBJRM_XLU | G_OBJRM_BILERP),
+    gsSPBgRect1Cyc(&sprite_bg),
+    gsSPEndDisplayList(),
+};// 320 80
+
+static u8 tb_r, tb_g, tb_b, tb_a;
+void NT_DrawTextBox(void) {
+    sprite_bg.s.frameX = 0;
+    sprite_bg.s.frameY = (NewText_Y - 20) << 2;
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetEnvColor(gDisplayListHead++, tb_r, tb_g, tb_b, tb_a);
+    gSPDisplayList(gDisplayListHead++, sprite_bg_dl);
 }
 
 void NT_RenderMenu(u8 *cursor) {
@@ -170,6 +221,7 @@ int NewText_Parse(u8 *scene) {
     if (nt_cmd == NT_DONE) {
         bzero(NT_TextBuffer, sizeof(NT_TextBuffer));
         NewText_Cursor = 0;
+        NewText_DrawingTB = FALSE;
         return 0;
     }
 
@@ -179,6 +231,15 @@ int NewText_Parse(u8 *scene) {
         case NT_SAY:
             // this is gonna be epic
             if (NewText_RenderText(*(u32 *)(NewText_Cursor + 4))) proceed = 1;
+            break;
+        case NT_ALIGN:
+            NewText_CurAlign = NewText_Cursor[3];
+            proceed = 1;
+            if (NewText_Cursor[3] == ALIGN_CENTER) {
+                NewText_X = 320 / 2;
+            } else {
+                NewText_X = 40;
+            }
             break;
         case NT_ENDSAY:
             NewText_TextCursor = -1;
@@ -198,6 +259,15 @@ int NewText_Parse(u8 *scene) {
                     NewText_FrameWait = -1;
                 }
             }
+            break;
+        case NT_MAKETEXTBOX:
+            // TODO: do we want a way to skip this?
+            NewText_DrawingTB = TRUE;
+            tb_r = NewText_Cursor[4];
+            tb_g = NewText_Cursor[5];
+            tb_b = NewText_Cursor[6];
+            tb_a = NewText_Cursor[7];
+            proceed = 1;
             break;
         case NT_MENU:
             NewText_TextCursor = -1;
@@ -236,6 +306,14 @@ int NewText_Parse(u8 *scene) {
             break;
         case NT_UNSKIPPABLE:
             isUnskippable = TRUE;
+            proceed = 1;
+            break;
+        case NT_TEXTBOXPOS:
+            switch (NewText_Cursor[3]) {
+                case top: NewText_Y = 20; break;
+                case middle: NewText_Y = 100; break;
+                case bottom: NewText_Y = 170; break;
+            }
             proceed = 1;
             break;
     }

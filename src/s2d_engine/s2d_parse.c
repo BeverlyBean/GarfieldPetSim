@@ -274,12 +274,12 @@ void s2d_type_print_alloc(int x, int y, int align, const char *str, int *pos) {
 }
 
 // broken atm
-static int s2d_width(const char *str, int line, int len) {
+int s2d_width(const char *str, int line, int len) {
 	char *p = str;
 	int tmp_len = 0;
 	int curLine = 0;
 	int width = 0;
-	int scale = 1;
+	f32 scale = BASE_SCALE;
 
 	if (*p == '\0') return width;
 
@@ -288,7 +288,7 @@ static int s2d_width(const char *str, int line, int len) {
 		switch (current_char) {
 			case CH_SCALE:
 				CH_SKIP(p);
-				scale = s2d_atoi(p, &p);
+				scale = (f32)s2d_atoi(p, &p) / 100.0f;
 				break;
 			case CH_ROT:
 				CH_SKIP(p);
@@ -327,8 +327,10 @@ static int s2d_width(const char *str, int line, int len) {
 					width += TAB_WIDTH_V / TEX_RES;
 				break;
 			default:
-				if (current_char != '\0' && curLine == line)
-					width += s2d_kerning_table[(int) current_char] * scale;
+				if (current_char != '\0' && curLine == line) {
+					vu8 *tbl = segmented_to_virtual(s2d_kerning_table);
+					width += tbl[(int) current_char] * scale;
+				}
 		}
 		if (*p == '\0') break;
 		p++;
