@@ -8,12 +8,12 @@ maketextbox 255 255 255 255
 
 textsound SOUND_ACTION_TERRAIN_STEP
 
-align middle
+align left
 
 textpos top
 color "0 0 0 255"
 say "hello world"
-wait 12
+// wait 12
 say "!!!"
 endsay
 

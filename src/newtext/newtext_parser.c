@@ -79,7 +79,7 @@ int NewText_RenderText(u8 *text) {
     play_sound(NewText_TextSound, gGlobalSoundSource);
 
     if (NewText_TextSubCursor - NewText_TextCursor - numColorPrints >= NewText_TextLen) {
-        NewText_TextCursor = NewText_TextSubCursor;
+        NewText_TextCursor = NewText_TextSubCursor + 1;
         NewText_TextSubCursor = -1;
         return 1;
     } else {
