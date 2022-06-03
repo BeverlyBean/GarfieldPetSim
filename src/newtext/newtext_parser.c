@@ -3,6 +3,7 @@
 #include "sounds.h"
 #include "game/game_init.h"
 #include "audio/external.h"
+#include "s2d_engine/s2d_print.h"
 
 #define NT_PrintFunc s2d_print_deferred
 
@@ -13,11 +14,16 @@ static s32 NewText_TextLen = -1;
 
 static u8 *NewText_Cursor = 0;
 static s32 NewText_FrameWait = -1;
+static s32 numColorPrints = 0;
 
 static int NewText_X = 20;
 static int NewText_Y = 20;
 
 static u32 NewText_TextSound = 0;
+
+char myName[] = "SUPERMARIO";
+
+static u32 isUnskippable = FALSE;
 
 static u32 read_u32(u8 *d) {
     return *(u32*)d;
@@ -36,13 +42,32 @@ void NewText_CopyRest(u8 *text) {
     NewText_TextSubCursor += len;
 }
 
+int NewText_Keyboard(u8 *var) {
+    // strcpy(var, "epic");
+    static char kbuffer[50];
+    static char *FirstRow = "A B C D E F G H I J K L";
+    static char *SeconRow = "M N O P Q R S T U V W X";
+    static char *TertiRow = "Y Z _ ! . ? / + @ \" # END";
+
+    NT_PrintFunc(NewText_X, NewText_Y, FirstRow);
+    NT_PrintFunc(NewText_X, NewText_Y + 16, SeconRow);
+    NT_PrintFunc(NewText_X, NewText_Y + 32, TertiRow);
+
+    if (NT_ReadController() & A_BUTTON) {
+        strcpy(var, "EPIC");
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 int NewText_RenderText(u8 *text) {
     if (NewText_TextCursor == -1) NewText_TextCursor = 0;
     if (NewText_TextSubCursor == -1) NewText_TextSubCursor = NewText_TextCursor;
     if (NewText_TextLen == -1) NewText_TextLen = strlen(text);
 
     NT_TextBuffer[NewText_TextSubCursor] = text[NewText_TextSubCursor - NewText_TextCursor];
-    if (NT_ReadController() & A_BUTTON) {
+    if ((NT_ReadController() & A_BUTTON) && isUnskippable == FALSE) {
         NewText_CopyRest(text);
     } else {
         NT_TextBuffer[NewText_TextSubCursor + 1] = 0;
@@ -50,7 +75,7 @@ int NewText_RenderText(u8 *text) {
 
     play_sound(NewText_TextSound, gGlobalSoundSource);
 
-    if (NewText_TextSubCursor - NewText_TextCursor >= NewText_TextLen) {
+    if (NewText_TextSubCursor - NewText_TextCursor - numColorPrints >= NewText_TextLen) {
         NewText_TextCursor = NewText_TextSubCursor;
         NewText_TextSubCursor = -1;
         return 1;
@@ -58,6 +83,18 @@ int NewText_RenderText(u8 *text) {
         NewText_TextSubCursor += 1;
         return 0;
     }
+}
+
+void NewText_SayFull(u8 *text) {
+    if (NewText_TextCursor == -1) NewText_TextCursor = 0;
+    if (NewText_TextSubCursor == -1) NewText_TextSubCursor = NewText_TextCursor;
+    if (NewText_TextLen == -1) NewText_TextLen = strlen(text);
+
+    strcpy(&NT_TextBuffer[NewText_TextSubCursor], text);
+    NewText_TextSubCursor += NewText_TextLen;
+
+    NewText_TextCursor = NewText_TextSubCursor;
+    NewText_TextSubCursor = -1;
 }
 
 void NT_KeepText(void) {
@@ -131,6 +168,7 @@ int NewText_Parse(u8 *scene) {
     u8 nt_cmdlen = NewText_Cursor[1];
 
     if (nt_cmd == NT_DONE) {
+        bzero(NT_TextBuffer, sizeof(NT_TextBuffer));
         NewText_Cursor = 0;
         return 0;
     }
@@ -145,7 +183,11 @@ int NewText_Parse(u8 *scene) {
         case NT_ENDSAY:
             NewText_TextCursor = -1;
             NewText_TextLen = -1;
-            proceed = 1;
+            numColorPrints = 0;
+            isUnskippable = FALSE;
+            if (NT_ReadController() & (A_BUTTON | B_BUTTON)) {
+                proceed = 1;
+            }
             break;
         case NT_WAIT:
             if (NewText_FrameWait == -1) {
@@ -155,11 +197,6 @@ int NewText_Parse(u8 *scene) {
                     proceed = 1;
                     NewText_FrameWait = -1;
                 }
-            }
-            break;
-        case NT_BTN:
-            if (NT_ReadController() & *(u16*)(NewText_Cursor + 2)) {
-                proceed = 1;
             }
             break;
         case NT_MENU:
@@ -188,7 +225,19 @@ int NewText_Parse(u8 *scene) {
             NewText_TextSound = *(u32 *)(NewText_Cursor + 4);
             proceed = 1;
             break;
-
+        case NT_KEYBOARD:
+            if (NewText_Keyboard(*(u32 *)(NewText_Cursor + 4)) == 1) {
+                proceed = 1;
+            }
+            break;
+        case NT_SAYFULL:
+            NewText_SayFull(*(u32 *)(NewText_Cursor + 4));
+            proceed = 1;
+            break;
+        case NT_UNSKIPPABLE:
+            isUnskippable = TRUE;
+            proceed = 1;
+            break;
     }
 
     if (proceed) {

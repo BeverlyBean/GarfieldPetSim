@@ -13,7 +13,6 @@
 #define NT_NOP 0
 #define NT_SAY 1
 #define NT_WAIT 2
-#define NT_BTN 3
 #define NT_ENDSAY 4
 #define NT_MENU 5
 #define NT_GO 6
@@ -22,6 +21,8 @@
 #define NT_TURING 9
 #define NT_SOUND 10
 #define NT_TXTSOUND 11
+#define NT_SAYFULL 12
+#define NT_UNSKIPPABLE 13
 #define NT_DONE 15
 
 
@@ -73,9 +74,15 @@
     .half \frames
 .endm
 
-.macro button btn
-    .byte NT_BTN, 4
-    .half \btn
+.macro color cstr
+    .byte NT_SAYFULL, 8,0,0
+    .word NT_str1_\@
+    .section .rodata
+    .balign 4
+    NT_str1_\@:
+        .byte 0x83
+        .asciiz "\cstr"
+    .section .newtext
 .endm
 
 .macro go lbl
@@ -114,6 +121,10 @@
 
 .macro endsay
     .byte NT_ENDSAY, 4, 0,0
+.endm
+
+.macro unskippable
+    .byte NT_UNSKIPPABLE, 4, 0, 0
 .endm
 
 #else

@@ -13,17 +13,17 @@ NT_Testscene1:
 
 textsound SOUND_ACTION_TERRAIN_STEP
 
-// say SCALE "25"
 say "hello world"
-wait 30
+wait 12
 say "!!!"
 endsay
 
-button A_BUTTON
 play SOUND_MARIO_YAHOO
+color "255 255 0 255"
 say "im stupid!"
 endsay
-button A_BUTTON
+
+keyboard myName
 
 menu "Select a choice!", \
      "games", pickA, \
@@ -49,8 +49,25 @@ pickD:
 
 
 myTextEnd:
+say " "
+recall myName
 endsay // optimization built right in!
-button A_BUTTON
+
+say "This message can be fully shown with the A button, or..."
+endsay
+say "fully skipped with the B button!"
+endsay
+unskippable
+say "this message is required!"
+endsay
+play SOUND_ACTION_TERRAIN_STEP
+
+
+
+
+
+
+
 endscene
 
 
