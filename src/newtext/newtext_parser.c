@@ -342,7 +342,12 @@ int NewText_Parse(u8 *scene) {
                 | (NewText_Cursor[7])
                 );
             s2d_colorstack[s2d_colorstack_top++] = NewText_CurrentColor;
-            NT_TextBuffer[NewText_TextCursor++] = CH_COLORSTACK;
+            if (NewText_TextCursor == -1) {
+                NT_TextBuffer[0] = CH_COLORSTACK;
+                NewText_TextCursor = 1;
+            } else {
+                NT_TextBuffer[NewText_TextCursor++] = CH_COLORSTACK;
+            }
             proceed = 1;
             break;
     }
