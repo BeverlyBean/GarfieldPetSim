@@ -26,7 +26,8 @@
 #define NT_UNSKIPPABLE 13
 #define NT_MAKETEXTBOX 14
 #define NT_TEXTBOXPOS 15
-#define NT_DONE 16
+#define NT_COLOR 16
+#define NT_DONE 17
 
 #define left 0
 #define top 0
@@ -98,15 +99,9 @@
     .half \frames
 .endm
 
-.macro color cstr
-    .byte NT_SAYFULL, 8,0,0
-    .word NT_str1_\@
-    .section .rodata
-    .balign 4
-    NT_str1_\@:
-        .byte 0x83
-        .asciiz "\cstr"
-    .section .newtext
+.macro color r, g, b, a
+    .byte NT_COLOR, 8,0,0
+    .byte \r, \g, \b, \a
 .endm
 
 .macro go lbl

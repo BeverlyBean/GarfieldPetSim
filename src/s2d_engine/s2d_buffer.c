@@ -11,6 +11,8 @@ struct s2d_pos {
 static struct s2d_pos s2d_positions[S2D_BUFFERSIZE];
 static char *s2d_charBuffer[S2D_BUFFERSIZE];
 static int s2d_charBuffer_index = 0;
+u32 s2d_colorstack[S2D_BUFFERSIZE];
+u32 s2d_colorstack_top = 0;
 
 void s2d_reset_defer_index(void) {
 	s2d_charBuffer_index = 0;
@@ -22,6 +24,7 @@ void s2d_print_deferred(int x, int y, const char *str) {
 	s2d_charBuffer[s2d_charBuffer_index] = str;
 	s2d_positions[s2d_charBuffer_index].x = x;
 	s2d_positions[s2d_charBuffer_index].y = y;
+	// s2d_colors[s2d_charBuffer_index] = color;
 
 	s2d_charBuffer_index++;
 }
@@ -34,6 +37,7 @@ void s2d_handle_deferred(void) {
 			s2d_positions[i].y,
 			NewText_CurAlign,
 			s2d_charBuffer[i]
+			// s2d_colors[i]
 		);
 	}
 }

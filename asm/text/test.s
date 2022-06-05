@@ -11,14 +11,14 @@ textsound SOUND_ACTION_TERRAIN_STEP
 align left
 
 textpos top
-color "0 0 0 255"
+color 0 0 0 255
 say "hello world"
-// wait 12
+wait 12
 say "!!!"
 endsay
 
 textpos middle
-color "0 0 0 255"
+color 0 255 0 255
 play SOUND_MARIO_YAHOO
 say "im stupid!"
 endsay
@@ -28,7 +28,7 @@ keyboard myName
 align left
 textpos bottom
 maketextbox 255 0 0 255
-color "0 0 0 255"
+color 0 0 0 255
 menu "Select a choice!", \
      "games", pickA, \
      "tv", pickB, \
@@ -60,7 +60,7 @@ endsay // optimization built right in!
 say "This message can be fully shown with the A button, or..."
 endsay
 say "fully skipped with\n"
-color "255 0 0 255"
+color 0 0 255 255
 say "the B button!"
 endsay
 unskippable

@@ -23,6 +23,7 @@ static int NewText_Y = 20;
 static u32 NewText_TextSound = 0;
 u32 NewText_CurAlign = ALIGN_LEFT;
 u32 NewText_DrawingTB = FALSE;
+u32 NewText_CurrentColor = 0x000000FF;
 
 char myName[] = "SUPERMARIO";
 
@@ -48,9 +49,11 @@ void NewText_CopyRest(u8 *text) {
 int NewText_Keyboard(u8 *var) {
     // strcpy(var, "epic");
     static char kbuffer[50];
-    static char *FirstRow = "A B C D E F G H I J K L";
-    static char *SeconRow = "M N O P Q R S T U V W X";
-    static char *TertiRow = "Y Z _ ! . ? / + @ \" # END";
+    static char *FirstRow = " A B C D E F G H I J K L ";
+    static char *SeconRow = " M N O P Q R S T U V W X ";
+    static char *TertiRow = " Y Z _ ! . ? / + @ \" # END ";
+
+    static u32 curX = 0, curY = 0;
 
     NT_PrintFunc(NewText_X, NewText_Y, FirstRow);
     NT_PrintFunc(NewText_X, NewText_Y + 16, SeconRow);
@@ -79,7 +82,7 @@ int NewText_RenderText(u8 *text) {
     play_sound(NewText_TextSound, gGlobalSoundSource);
 
     if (NewText_TextSubCursor - NewText_TextCursor - numColorPrints >= NewText_TextLen) {
-        NewText_TextCursor = NewText_TextSubCursor + 1;
+        NewText_TextCursor = NewText_TextSubCursor;
         NewText_TextSubCursor = -1;
         return 1;
     } else {
@@ -152,6 +155,9 @@ void NT_DrawTextBox(void) {
     gSPDisplayList(gDisplayListHead++, sprite_bg_dl);
 }
 
+extern u32 s2d_colorstack[100];
+extern u32 s2d_colorstack_top;
+
 void NT_RenderMenu(u8 *cursor) {
     static u32 sticklatch = 0;
     static s32 curpos = 0;
@@ -168,16 +174,15 @@ void NT_RenderMenu(u8 *cursor) {
     labels[3] = read_u32(cursor + 36);
 
 
-
     // cursor
-    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">");
+    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">", NewText_CurrentColor);
 
     // text print
-    NT_PrintFunc(NewText_X, NewText_Y, title);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4);
+    NT_PrintFunc(NewText_X, NewText_Y, title, NewText_CurrentColor);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1, NewText_CurrentColor);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2, NewText_CurrentColor);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3, NewText_CurrentColor);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4, NewText_CurrentColor);
 
     // cursor movement
     s8 stick = NT_ReadStick();
@@ -209,6 +214,7 @@ void NT_RenderMenu(u8 *cursor) {
     }
 }
 
+u32 subStackPtr = 0;
 int NewText_Parse(u8 *scene) {
     if (NewText_Cursor == 0) {
         NewText_Cursor = scene;
@@ -218,10 +224,15 @@ int NewText_Parse(u8 *scene) {
     u8 nt_cmd = NewText_Cursor[0];
     u8 nt_cmdlen = NewText_Cursor[1];
 
+    u32 isKeyboard = 0;
+
     if (nt_cmd == NT_DONE) {
         bzero(NT_TextBuffer, sizeof(NT_TextBuffer));
         NewText_Cursor = 0;
         NewText_DrawingTB = FALSE;
+        extern u32 subStackPtr;
+        subStackPtr = 0;
+        s2d_colorstack_top = 0;
         return 0;
     }
 
@@ -246,6 +257,8 @@ int NewText_Parse(u8 *scene) {
             NewText_TextLen = -1;
             numColorPrints = 0;
             isUnskippable = FALSE;
+            subStackPtr = 0;
+            s2d_colorstack_top = 0;
             if (NT_ReadController() & (A_BUTTON | B_BUTTON)) {
                 proceed = 1;
             }
@@ -270,9 +283,11 @@ int NewText_Parse(u8 *scene) {
             proceed = 1;
             break;
         case NT_MENU:
-            NewText_TextCursor = -1;
-            NewText_TextLen = -1;
-            NT_TextBuffer[0] = 0;
+            // if (NT_TextBuffer[0] != CH_COLOR) {
+            //     NewText_TextCursor = -1;
+            //     NewText_TextLen = -1;
+            //     NT_TextBuffer[0] = 0;
+            // }
             // does not have a proceed condition because its a branch
             NT_RenderMenu(NewText_Cursor);
             break;
@@ -298,6 +313,9 @@ int NewText_Parse(u8 *scene) {
         case NT_KEYBOARD:
             if (NewText_Keyboard(*(u32 *)(NewText_Cursor + 4)) == 1) {
                 proceed = 1;
+                isKeyboard = 0;
+            } else {
+                isKeyboard = 1;
             }
             break;
         case NT_SAYFULL:
@@ -316,13 +334,33 @@ int NewText_Parse(u8 *scene) {
             }
             proceed = 1;
             break;
+        case NT_COLOR:
+            NewText_CurrentColor = (
+                  (NewText_Cursor[4] << 24)
+                | (NewText_Cursor[5] << 16)
+                | (NewText_Cursor[6] << 8)
+                | (NewText_Cursor[7])
+                );
+            s2d_colorstack[s2d_colorstack_top++] = NewText_CurrentColor;
+            NT_TextBuffer[NewText_TextCursor++] = CH_COLORSTACK;
+            proceed = 1;
+            break;
     }
 
     if (proceed) {
         NewText_Cursor += nt_cmdlen;
     }
 
-    NT_KeepText();
+    if (isKeyboard == 0) {
+        NT_KeepText();
+    }
+
+    char epic[100][30];
+
+    for (int i = 0; i < s2d_colorstack_top; i++) {
+        sprintf(epic[i], "%X", s2d_colorstack[i]);
+        NT_PrintFunc(20, 20 + (16 * i), epic[i]);
+    }
 
     return 1;
 }
