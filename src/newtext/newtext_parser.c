@@ -58,12 +58,36 @@ void str_repl_space_w_color(u8 *text, u32 pos) {
     text[(pos * 2) + 2] = CH_COLORSTACK_UD;
 }
 
+void flipcase(u8 **texts) {
+    static s32 isUpper = 1;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < strlen(texts[i]); j++) {
+            if ((texts[i][j] >= ('A')
+              && texts[i][j] <= ('Z'))
+                ||
+                (texts[i][j] >= ('a')
+              && texts[i][j] <= ('z'))
+            ) {
+                texts[i][j] += (isUpper * 32);
+            }
+        }
+    }
+
+
+    isUpper *= -1;
+}
+
 int NewText_Keyboard(u8 *text, u8 *var) {
     // strcpy(var, "epic");
     static char kbuffer[50];
+    static u32 kcur = 0;
     static char *FirstRow = "A B C D E F G H I J K L ";
     static char *SeconRow = "M N O P Q R S T U V W X ";
-    static char *TertiRow = "Y Z _ ! . ? / + @ \" # END ";
+    static char *TertiRow = "Y Z 0 1 2 3 4 5 6 7 8 9 ";
+
+    static char *instructions = "[shift: L][backspace: B][space: C-Right][end: Start]";
+
     char *epic[3] = {FirstRow, SeconRow, TertiRow};
 
     static u32 sticklatch = 0;
@@ -79,18 +103,22 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     NT_PrintFunc(NewText_X - 20, NewText_Y, FirstRow);
     NT_PrintFunc(NewText_X - 20, NewText_Y + 0x10, SeconRow);
     NT_PrintFunc(NewText_X - 20, NewText_Y + 32, TertiRow);
+    NT_PrintFunc(NewText_X - 20, NewText_Y + 50, instructions);
 
     u32 dispCurX = 0;
 
     if (curY == 0) {
-        dispCurX = NewText_X - 20;
+        dispCurX = NewText_X - 24;
     } else {
-        dispCurX = NewText_X - 25 + s2d_snwidth(epic[curX], curY * 2);
+        dispCurX = NewText_X - 25 + s2d_snwidth(epic[curX], curY * 2) + 1;
     }
 
-    NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), COLOR "255 0 0 255" "[ ]");
+    static char curbuffer[50] = COLOR "255 0 0 255";
+    sprintf(curbuffer + 12, "[%c]", epic[curX][curY * 2]);
+    NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), curbuffer);
 
     NT_PrintFunc(NewText_X + 170, NewText_Y, text);
+    NT_PrintFunc(NewText_X + 170, NewText_Y + 16, kbuffer);
 
     s8 stick = NT_ReadStick();
     if ((stick >= -14) && (stick <= 14)) {
@@ -129,13 +157,31 @@ int NewText_Keyboard(u8 *text, u8 *var) {
 
     print_text_fmt_int(50, 50, "%d", sticklatch);
 
-     if (NT_ReadController() & A_BUTTON) {
-        strcpy(var, "EPIC");
-        return 1;
-    } else {
-        return 0;
+    if (NT_ReadController() & A_BUTTON) {
+        kbuffer[kcur++] = epic[curX][curY * 2];
     }
 
+    if (NT_ReadController() & B_BUTTON) {
+        if (kcur != 0) {
+            kbuffer[--kcur] = 0;
+        }
+    }
+
+    if (NT_ReadController() & R_CBUTTONS) {
+        kbuffer[kcur++] = ' ';
+    }
+    
+    if (NT_ReadController() & L_TRIG) {
+        flipcase(epic);
+    }
+
+    if (NT_ReadController() & START_BUTTON) {
+        strcpy(var, kbuffer);
+        kcur = 0;
+        bzero(kbuffer, sizeof(kbuffer));
+        return 1;
+    }
+    return 0;
 }
 
 int NewText_RenderText(u8 *text) {
