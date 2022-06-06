@@ -46,25 +46,96 @@ void NewText_CopyRest(u8 *text) {
     NewText_TextSubCursor += len;
 }
 
-int NewText_Keyboard(u8 *var) {
+
+void clearrow(u8 *text) {
+    for (int i = 0; i < strlen(text); i++) {
+        if (text[i] == CH_COLORSTACK_UD) text[i] = ' ';
+    }
+}
+
+void str_repl_space_w_color(u8 *text, u32 pos) {
+    text[(pos * 2)] = CH_COLORSTACK_UD;
+    text[(pos * 2) + 2] = CH_COLORSTACK_UD;
+}
+
+int NewText_Keyboard(u8 *text, u8 *var) {
     // strcpy(var, "epic");
     static char kbuffer[50];
-    static char *FirstRow = " A B C D E F G H I J K L ";
-    static char *SeconRow = " M N O P Q R S T U V W X ";
-    static char *TertiRow = " Y Z _ ! . ? / + @ \" # END ";
+    static char *FirstRow = "A B C D E F G H I J K L ";
+    static char *SeconRow = "M N O P Q R S T U V W X ";
+    static char *TertiRow = "Y Z _ ! . ? / + @ \" # END ";
+    char *epic[3] = {FirstRow, SeconRow, TertiRow};
 
-    static u32 curX = 0, curY = 0;
+    static u32 sticklatch = 0;
 
-    NT_PrintFunc(NewText_X, NewText_Y, FirstRow);
-    NT_PrintFunc(NewText_X, NewText_Y + 16, SeconRow);
-    NT_PrintFunc(NewText_X, NewText_Y + 32, TertiRow);
+    static s32 curX = 0, curY = 0;
 
-    if (NT_ReadController() & A_BUTTON) {
+    // clearrow(epic[0]);
+    // clearrow(epic[1]);
+    // clearrow(epic[2]);
+    // str_repl_space_w_color(epic[curX], curY);
+
+
+    NT_PrintFunc(NewText_X - 20, NewText_Y, FirstRow);
+    NT_PrintFunc(NewText_X - 20, NewText_Y + 0x10, SeconRow);
+    NT_PrintFunc(NewText_X - 20, NewText_Y + 32, TertiRow);
+
+    u32 dispCurX = 0;
+
+    if (curY == 0) {
+        dispCurX = NewText_X - 20;
+    } else {
+        dispCurX = NewText_X - 25 + s2d_snwidth(epic[curX], curY * 2);
+    }
+
+    NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), COLOR "255 0 0 255" "[ ]");
+
+    NT_PrintFunc(NewText_X + 170, NewText_Y, text);
+
+    s8 stick = NT_ReadStick();
+    if ((stick >= -14) && (stick <= 14)) {
+        sticklatch = 0;
+    }
+    if (sticklatch == 0) {
+        if (stick < -14) {
+            curX++;
+            sticklatch = 1;
+        }
+        if (stick > 14) {
+            curX--;
+            sticklatch = 1;
+        }
+    }
+
+    stick = gPlayer1Controller->stickX;
+    if ((stick >= -14) && (stick <= 14)) {
+        sticklatch = 0;
+    }
+    if (sticklatch == 0) {
+        if (stick < -14) {
+            curY--;
+            sticklatch = 1;
+        }
+        if (stick > 14) {
+            curY++;
+            sticklatch = 1;
+        }
+    }
+
+    if (curX < 0) curX = 0;
+    if (curX > 2) curX = 2;
+    if (curY < 0) curY = 0;
+    if (curY > 11) curY = 11;
+
+    print_text_fmt_int(50, 50, "%d", sticklatch);
+
+     if (NT_ReadController() & A_BUTTON) {
         strcpy(var, "EPIC");
         return 1;
     } else {
         return 0;
     }
+
 }
 
 int NewText_RenderText(u8 *text) {
@@ -173,16 +244,16 @@ void NT_RenderMenu(u8 *cursor) {
     char *ch4 = read_u32(cursor + 32);
     labels[3] = read_u32(cursor + 36);
 
-
+    s2d_colorstack[98] = NewText_CurrentColor;
     // cursor
-    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">", NewText_CurrentColor);
+    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">");
 
     // text print
-    NT_PrintFunc(NewText_X, NewText_Y, title, NewText_CurrentColor);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1, NewText_CurrentColor);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2, NewText_CurrentColor);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3, NewText_CurrentColor);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4, NewText_CurrentColor);
+    NT_PrintFunc(NewText_X, NewText_Y, title);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3);
+    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4);
 
     // cursor movement
     s8 stick = NT_ReadStick();
@@ -225,6 +296,7 @@ int NewText_Parse(u8 *scene) {
     u8 nt_cmdlen = NewText_Cursor[1];
 
     u32 isKeyboard = 0;
+    u32 ismenu = 0;
 
     if (nt_cmd == NT_DONE) {
         bzero(NT_TextBuffer, sizeof(NT_TextBuffer));
@@ -283,6 +355,7 @@ int NewText_Parse(u8 *scene) {
             proceed = 1;
             break;
         case NT_MENU:
+            ismenu = 1;
             // if (NT_TextBuffer[0] != CH_COLOR) {
             //     NewText_TextCursor = -1;
             //     NewText_TextLen = -1;
@@ -311,7 +384,7 @@ int NewText_Parse(u8 *scene) {
             proceed = 1;
             break;
         case NT_KEYBOARD:
-            if (NewText_Keyboard(*(u32 *)(NewText_Cursor + 4)) == 1) {
+            if (NewText_Keyboard(*(u32 *)(NewText_Cursor + 4), *(u32 *)(NewText_Cursor + 8)) == 1) {
                 proceed = 1;
                 isKeyboard = 0;
             } else {
@@ -356,16 +429,17 @@ int NewText_Parse(u8 *scene) {
         NewText_Cursor += nt_cmdlen;
     }
 
-    if (isKeyboard == 0) {
+    if (isKeyboard == 0 && ismenu == 0) {
         NT_KeepText();
     }
 
     char epic[100][30];
 
-    for (int i = 0; i < s2d_colorstack_top; i++) {
-        sprintf(epic[i], "%X", s2d_colorstack[i]);
-        NT_PrintFunc(20, 20 + (16 * i), epic[i]);
-    }
+    // debug print the color stack
+    // for (int i = 0; i < s2d_colorstack_top; i++) {
+    //     sprintf(epic[i], "%X", s2d_colorstack[i]);
+    //     NT_PrintFunc(20, 20 + (16 * i), epic[i]);
+    // }
 
     return 1;
 }

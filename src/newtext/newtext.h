@@ -109,9 +109,15 @@
     .word \lbl
 .endm
 
-.macro keyboard variable
-    .byte NT_KEYBOARD, 8, 0, 0
+.macro keyboard titlestr variable
+    .byte NT_KEYBOARD, 12, 0, 0
+    .word NT_keytitle_\@
     .word \variable
+    .section .rodata
+    .balign 4
+    NT_keytitle_\@:
+        .asciiz "\titlestr"
+    .section .newtext
 .endm
 
 .macro recall variable

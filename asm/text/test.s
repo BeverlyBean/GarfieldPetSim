@@ -23,7 +23,7 @@ play SOUND_MARIO_YAHOO
 say "im stupid!"
 endsay
 
-keyboard myName
+keyboard "Enter a thing!", myName
 
 align left
 textpos bottom

@@ -37,13 +37,17 @@ static int s2d_snprint(int x, int y, int align, const char *str, uObjMtx *buf, i
 	}
 
 	// resets parameters
-	s2d_red = 255;
-	s2d_green = 255;
-	s2d_blue = 255;
-	s2d_alpha = 255;
+	u32 init_c = s2d_colorstack[98];
+				s2d_red = (init_c >> 24) & 0xFF;
+				s2d_green = (init_c >> 16) & 0xFF;
+				s2d_blue = (init_c >> 8) & 0xFF;
+				s2d_alpha = (init_c) & 0xFF;
+
+	u32 tempc;
 	// drop_shadow = FALSE;
 	extern u32 subStackPtr;
 	subStackPtr = 0;
+	int ud_mode = 0;
 
 	switch (align) {
 		case ALIGN_CENTER:
@@ -170,11 +174,23 @@ static int s2d_snprint(int x, int y, int align, const char *str, uObjMtx *buf, i
 				myDegrees = 0;
 				break;
 			case CH_COLORSTACK:
-				u32 c = s2d_colorstack[subStackPtr++];
-				s2d_red = (c >> 24) & 0xFF;
-				s2d_green = (c >> 16) & 0xFF;
-				s2d_blue = (c >> 8) & 0xFF;
-				s2d_alpha = (c) & 0xFF;
+				tempc = s2d_colorstack[subStackPtr++];
+				s2d_red = (tempc >> 24) & 0xFF;
+				s2d_green = (tempc >> 16) & 0xFF;
+				s2d_blue = (tempc >> 8) & 0xFF;
+				s2d_alpha = (tempc) & 0xFF;
+				break;
+			case CH_COLORSTACK_UD:
+				if (ud_mode == 0) {
+					tempc = s2d_colorstack[subStackPtr] ^ 0xFFFFFF00;
+				} else {
+					tempc = s2d_colorstack[subStackPtr];
+				}
+				s2d_red = (tempc >> 24) & 0xFF;
+				s2d_green = (tempc >> 16) & 0xFF;
+				s2d_blue = (tempc >> 8) & 0xFF;
+				s2d_alpha = (tempc) & 0xFF;
+				ud_mode ^= 1;
 				break;
 			default:
 				if (current_char != '\0' && current_char != CH_SEPARATOR) {
@@ -296,7 +312,6 @@ void s2d_type_print_alloc(int x, int y, int align, const char *str, int *pos) {
 	// }
 }
 
-// broken atm
 int s2d_width(const char *str, int line, int len) {
 	char *p = str;
 	int tmp_len = 0;
@@ -362,6 +377,63 @@ int s2d_width(const char *str, int line, int len) {
 		p++;
 		tmp_len++;
 	} while (tmp_len < len && curLine <= line);
+	return width;
+}
+
+int s2d_snwidth(const char *str, int strl) {
+	char *p = str;
+	int tmp_len = 0;
+	int curLine = 0;
+	int width = 0;
+	f32 scale = BASE_SCALE;
+
+	if (*p == '\0') return width;
+
+	do {
+		char current_char = *p;
+		switch (current_char) {
+			case CH_SCALE:
+				CH_SKIP(p);
+				scale = (f32)s2d_atoi(p, &p) / 100.0f;
+				break;
+			case CH_ROT:
+				CH_SKIP(p);
+				s2d_atoi(p, &p);
+				break;
+			case CH_COLORSTACK:
+				CH_SKIP(p);
+				break;
+			case CH_TRANSLATE:
+				CH_SKIP(p);
+				s2d_atoi(p, &p);
+				curLine++;
+				CH_SKIP(p);
+				CH_SKIP(p);
+				s2d_atoi(p, &p);
+				break;
+			case CH_COLOR:
+				CH_SKIP(p);
+				s2d_atoi(p, &p);
+				CH_SKIP(p); CH_SKIP(p);
+				s2d_atoi(p, &p);
+				CH_SKIP(p); CH_SKIP(p);
+				s2d_atoi(p, &p);
+				CH_SKIP(p); CH_SKIP(p);
+				s2d_atoi(p, &p);
+				break;
+			case CH_DROPSHADOW:
+			case CH_RESET:
+				break;
+			default:
+				if (current_char != '\0') {
+					vu8 *tbl = segmented_to_virtual(s2d_kerning_table);
+					width += tbl[(int) current_char] * scale;
+				}
+		}
+		if (*p == '\0') break;
+		p++;
+		tmp_len++;
+	} while (tmp_len < strl);
 	return width;
 }
 
