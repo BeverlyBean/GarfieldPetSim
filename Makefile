@@ -122,7 +122,7 @@ TEXT_ENGINE := s2dex_text_engine
 ifeq ($(TEXT_ENGINE), s2dex_text_engine)
   DEFINES += S2DEX_GBI_2=1 S2DEX_TEXT_ENGINE=1
   LIBRARIES += s2d_engine
-  DUMMY != make -C src/s2d_engine COPY_DIR=$(shell pwd)/lib/
+  DUMMY != make -C src/s2dex_text_engine COPY_DIR=$(shell pwd)/lib/
 endif
 # add more text engines here
 
@@ -551,7 +551,7 @@ all: $(ROM)
 
 clean:
 	$(RM) -r $(BUILD_DIR_BASE)
-	make -C src/s2d_engine clean
+	make -C src/s2dex_text_engine clean
 
 distclean: clean
 	$(PYTHON) extract_assets.py --clean

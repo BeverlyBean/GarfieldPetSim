@@ -3,8 +3,8 @@
 #include "sounds.h"
 #include "game/game_init.h"
 #include "audio/external.h"
-#include "s2d_engine/s2d_print.h"
-#include "s2d_engine/s2d_ustdlib.h"
+#include "s2dex_text_engine/s2d_print.h"
+#include "s2dex_text_engine/s2d_ustdlib.h"
 #include "dialog.h"
 
 #define NT_PrintFunc s2d_print_deferred
