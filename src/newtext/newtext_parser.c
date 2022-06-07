@@ -305,15 +305,18 @@ void NT_RenderMenu(u8 *cursor) {
     labels[3] = read_u32(cursor + 36);
 
     s2d_colorstack[98] = NewText_CurrentColor;
+
+    int baseY = NewText_Y - 10;
+
     // cursor
-    NT_PrintFunc(NewText_X - 4, NewText_Y + (16 * (curpos + 1)), ">");
+    NT_PrintFunc(NewText_X - 4, baseY + (15 * (curpos + 1)), ">");
 
     // text print
-    NT_PrintFunc(NewText_X, NewText_Y, title);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 16, ch1);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 32, ch2);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 48, ch3);
-    NT_PrintFunc(NewText_X + 8, NewText_Y + 64, ch4);
+    NT_PrintFunc(NewText_X, baseY, title);
+    NT_PrintFunc(NewText_X + 8, baseY + 15, ch1);
+    NT_PrintFunc(NewText_X + 8, baseY + 30, ch2);
+    NT_PrintFunc(NewText_X + 8, baseY + 45, ch3);
+    NT_PrintFunc(NewText_X + 8, baseY + 60, ch4);
 
     // cursor movement
     s8 stick = NT_ReadStick();
