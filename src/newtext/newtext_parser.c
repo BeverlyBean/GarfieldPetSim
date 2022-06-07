@@ -98,7 +98,7 @@ int NewText_Keyboard(u8 *text, u8 *var) {
 
     char *epic[3] = {FirstRow, SeconRow, TertiRow};
 
-    static u32 sticklatch = 0;
+    static u32 sticklatchX = 0, sticklatchY = 0;
 
     static s32 curX = 0, curY = 0;
 
@@ -130,31 +130,31 @@ int NewText_Keyboard(u8 *text, u8 *var) {
 
     s8 stick = gPlayer1Controller->stickY;
     if ((stick >= -14) && (stick <= 14)) {
-        sticklatch = 0;
+        sticklatchY = 0;
     }
-    if (sticklatch == 0) {
+    if (sticklatchY == 0) {
         if (stick < -14) {
             curX++;
-            sticklatch = 1;
+            sticklatchY = 1;
         }
         if (stick > 14) {
             curX--;
-            sticklatch = 1;
+            sticklatchY = 1;
         }
     }
 
     stick = gPlayer1Controller->stickX;
     if ((stick >= -14) && (stick <= 14)) {
-        sticklatch = 0;
+        sticklatchX = 0;
     }
-    if (sticklatch == 0) {
+    if (sticklatchX == 0) {
         if (stick < -14) {
             curY--;
-            sticklatch = 1;
+            sticklatchX = 1;
         }
         if (stick > 14) {
             curY++;
-            sticklatch = 1;
+            sticklatchX = 1;
         }
     }
 
@@ -163,7 +163,7 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     if (curY < 0) curY = 0;
     if (curY > 11) curY = 11;
 
-    print_text_fmt_int(50, 50, "%d", sticklatch);
+    // print_text_fmt_int(50, 50, "%d", sticklatch);
 
     if (NT_ReadController() & A_BUTTON) {
         kbuffer[kcur++] = epic[curX][curY * 2];
