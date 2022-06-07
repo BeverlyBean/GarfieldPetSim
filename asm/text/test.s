@@ -47,11 +47,12 @@ pickB:
 
 pickC:
     textpos top
-    say "mario"
+    recall myName
     say "! you are correct!\n"
     say "Congratulations, "
-    say "mario"
-    say "!!!"
+    recall myName
+    say "!"
+    recall myName
     go myTextEnd
 
 pickD:
