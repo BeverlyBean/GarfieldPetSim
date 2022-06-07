@@ -4,9 +4,17 @@
 #include "game/game_init.h"
 #include "audio/external.h"
 #include "s2d_engine/s2d_print.h"
+#include "s2d_engine/s2d_ustdlib.h"
 #include "dialog.h"
 
 #define NT_PrintFunc s2d_print_deferred
+u32 NT_StrLen(u8 *text) {
+    char *p = text;
+    while (*p != 0) {
+        p ++;
+    }
+    return (u32)p - (u32)text;
+}
 
 static char NT_TextBuffer[2048];
 static s32 NewText_TextCursor = -1;
@@ -41,14 +49,14 @@ s8 NT_ReadStick() {
 }
 
 void NewText_CopyRest(u8 *text) {
-    u32 len = strlen(text + (NewText_TextSubCursor - NewText_TextCursor));
+    u32 len = NT_StrLen(text + (NewText_TextSubCursor - NewText_TextCursor));
     strcpy(NT_TextBuffer + NewText_TextSubCursor, text + (NewText_TextSubCursor - NewText_TextCursor));
     NewText_TextSubCursor += len;
 }
 
 
 void clearrow(u8 *text) {
-    for (int i = 0; i < strlen(text); i++) {
+    for (int i = 0; i < NT_StrLen(text); i++) {
         if (text[i] == CH_COLORSTACK_UD) text[i] = ' ';
     }
 }
@@ -62,7 +70,7 @@ void flipcase(u8 **texts) {
     static s32 isUpper = 1;
 
     for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < strlen(texts[i]); j++) {
+        for (int j = 0; j < NT_StrLen(texts[i]); j++) {
             if ((texts[i][j] >= ('A')
               && texts[i][j] <= ('Z'))
                 ||
@@ -120,7 +128,7 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     NT_PrintFunc(NewText_X + 170, NewText_Y, text);
     NT_PrintFunc(NewText_X + 170, NewText_Y + 16, kbuffer);
 
-    s8 stick = NT_ReadStick();
+    s8 stick = gPlayer1Controller->stickY;
     if ((stick >= -14) && (stick <= 14)) {
         sticklatch = 0;
     }
@@ -187,7 +195,10 @@ int NewText_Keyboard(u8 *text, u8 *var) {
 int NewText_RenderText(u8 *text) {
     if (NewText_TextCursor == -1) NewText_TextCursor = 0;
     if (NewText_TextSubCursor == -1) NewText_TextSubCursor = NewText_TextCursor;
-    if (NewText_TextLen == -1) NewText_TextLen = strlen(text);
+    if (NewText_TextLen == -1) NewText_TextLen = NT_StrLen(text);
+    // if (text[0] == 'C' && NewText_TextLen != 17) {
+    //     *(vs8*)0=0;
+    // }
 
     NT_TextBuffer[NewText_TextSubCursor] = text[NewText_TextSubCursor - NewText_TextCursor];
     if ((NT_ReadController() & A_BUTTON) && isUnskippable == FALSE) {
@@ -198,9 +209,12 @@ int NewText_RenderText(u8 *text) {
 
     play_sound(NewText_TextSound, gGlobalSoundSource);
 
-    if (NewText_TextSubCursor - NewText_TextCursor - numColorPrints >= NewText_TextLen) {
+    // print_text_fmt_int(50, 50, "%d", NewText_TextLen);
+
+    if (NewText_TextSubCursor - NewText_TextCursor >= NewText_TextLen) {
         NewText_TextCursor = NewText_TextSubCursor;
         NewText_TextSubCursor = -1;
+        NewText_TextLen = -1;
         return 1;
     } else {
         NewText_TextSubCursor += 1;
@@ -211,7 +225,7 @@ int NewText_RenderText(u8 *text) {
 void NewText_SayFull(u8 *text) {
     if (NewText_TextCursor == -1) NewText_TextCursor = 0;
     if (NewText_TextSubCursor == -1) NewText_TextSubCursor = NewText_TextCursor;
-    if (NewText_TextLen == -1) NewText_TextLen = strlen(text);
+    if (NewText_TextLen == -1) NewText_TextLen = NT_StrLen(text);
 
     strcpy(&NT_TextBuffer[NewText_TextSubCursor], text);
     NewText_TextSubCursor += NewText_TextLen;

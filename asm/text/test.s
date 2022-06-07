@@ -36,25 +36,31 @@ menu "Select a choice!", \
      "being lazy", pickD
 
 pickA:
-    say "wrong!"
+    recall myName
+    say "! you are wrong!"
     go myTextEnd
 
 pickB:
-    say "wrong!"
+    recall myName
+    say "! you are wrong!"
     go myTextEnd
 
 pickC:
-    say "Correct!"
+    textpos top
+    say "mario"
+    say "! you are correct!\n"
+    say "Congratulations, "
+    say "mario"
+    say "!!!"
     go myTextEnd
 
 pickD:
-    say "please dont say you are lazy!"
+    recall myName
+    say "! please dont say you are lazy!"
     go myTextEnd
 
 
 myTextEnd:
-say " "
-recall myName
 endsay // optimization built right in!
 
 say "This message can be fully shown with the A button, or..."
