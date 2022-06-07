@@ -494,18 +494,13 @@ s32 act_reading_sign(struct MarioState *m) {
             m->pos[2] += marioObj->oMarioReadingSignDPosZ / 11.0f;
             // create the text box
             if (m->actionTimer++ == 10) {
-                // create_dialog_inverted_box(m->usedObj->oBehParams2ndByte);
+                create_dialog_inverted_box(m->usedObj->oBehParams2ndByte);
                 m->actionState = ACT_STATE_READING_SIGN_IN_DIALOG;
             }
             break;
         case ACT_STATE_READING_SIGN_IN_DIALOG:
             // dialog finished
-    //     if (gPlayer1Controller->buttonDown & Z_TRIG) {
-    //     NewText_Parse(NT_Testscene1);
-    // }
-        extern u8 NT_Testscene1[];
-            if (NewText_Parse(NT_Testscene1) == 0) {
-                gCamera->cutscene = CUTSCENE_NONE;
+            if (gCamera->cutscene == 0) {
                 disable_time_stop();
                 set_mario_action(m, ACT_IDLE, 0);
             }
