@@ -64,11 +64,14 @@ pickD:
 myTextEnd:
 endsay // optimization built right in!
 
-say "This message can be fully shown with the A button, or..."
+say "This message can be fully shown\n"
+say "with the A button, or..."
 endsay
-say "fully skipped with\n"
+say "nothing else because\n"
 color 0 0 255 255
-say "the B button!"
+say "the B button\n"
+color 0 0 0 255
+say "is useless!\n"
 endsay
 unskippable
 say "this message is required!"

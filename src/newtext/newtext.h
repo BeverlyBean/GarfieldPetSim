@@ -7,6 +7,10 @@
     #endif
 #endif
 
+
+#define NewText_MAXKEYBOARDWIDTH 10
+
+
 #include <PR/os_cont.h>
 
 

@@ -174,7 +174,11 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     // print_text_fmt_int(50, 50, "%d", sticklatch);
 
     if (NT_ReadController() & A_BUTTON) {
-        kbuffer[kcur++] = epic[curX][curY * 2];
+        if (kcur <= NewText_MAXKEYBOARDWIDTH) {
+            kbuffer[kcur++] = epic[curX][curY * 2];
+        } else {
+            play_sound(SOUND_MENU_CAMERA_BUZZ, gGlobalSoundSource);
+        }
     }
 
     if (NT_ReadController() & B_BUTTON) {
