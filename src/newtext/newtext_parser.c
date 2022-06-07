@@ -20,6 +20,7 @@ static char NT_TextBuffer[2048];
 static s32 NewText_TextCursor = -1;
 static s32 NewText_TextSubCursor = -1;
 static s32 NewText_TextLen = -1;
+static u32 NT_SkipToEnd= 0;
 
 static u8 *NewText_Cursor = 0;
 static s32 NewText_FrameWait = -1;
@@ -94,7 +95,7 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     static char *SeconRow = "M N O P Q R S T U V W X ";
     static char *TertiRow = "Y Z 0 1 2 3 4 5 6 7 8 9 ";
 
-    static char *instructions = "[shift: L][backspace: B][space: C-Right][end: Start]";
+    static char *instructions = "(shift: L)(backspace: B)(space: C-Right)(end: Start)";
 
     char *epic[3] = {FirstRow, SeconRow, TertiRow};
 
@@ -116,14 +117,21 @@ int NewText_Keyboard(u8 *text, u8 *var) {
     u32 dispCurX = 0;
 
     if (curY == 0) {
-        dispCurX = NewText_X - 24;
+        dispCurX = NewText_X - 22;
     } else {
-        dispCurX = NewText_X - 25 + s2d_snwidth(epic[curX], curY * 2) + 1;
+        dispCurX = NewText_X - 25 + s2d_snwidth(epic[curX], curY * 2) + 3;
     }
 
     static char curbuffer[50] = COLOR "255 0 0 255";
-    sprintf(curbuffer + 12, "[%c]", epic[curX][curY * 2]);
-    NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), curbuffer);
+    static char curbuffer2[50] = COLOR "0 0 0 255";
+    sprintf(curbuffer + 12, "(%c)", epic[curX][curY * 2]);
+    sprintf(curbuffer2 + 10, "(%c)", epic[curX][curY * 2]);
+    extern u32 gGlobalTimer;
+    if (gGlobalTimer % 15 < 7) {
+        NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), curbuffer);
+    } else {
+        NT_PrintFunc(dispCurX, NewText_Y + (16 * curX), curbuffer2);
+    }
 
     NT_PrintFunc(NewText_X + 170, NewText_Y, text);
     NT_PrintFunc(NewText_X + 170, NewText_Y + 16, kbuffer);
@@ -202,6 +210,11 @@ int NewText_RenderText(u8 *text) {
 
     NT_TextBuffer[NewText_TextSubCursor] = text[NewText_TextSubCursor - NewText_TextCursor];
     if ((NT_ReadController() & A_BUTTON) && isUnskippable == FALSE) {
+        NT_SkipToEnd = 1;
+    }
+
+
+    if (NT_SkipToEnd == 1) {
         NewText_CopyRest(text);
     } else {
         NT_TextBuffer[NewText_TextSubCursor + 1] = 0;
@@ -309,7 +322,7 @@ void NT_RenderMenu(u8 *cursor) {
     int baseY = NewText_Y - 10;
 
     // cursor
-    NT_PrintFunc(NewText_X - 4, baseY + (15 * (curpos + 1)), ">");
+    NT_PrintFunc(NewText_X - 4, baseY + (15 * (curpos + 1)), "|");
 
     // text print
     NT_PrintFunc(NewText_X, baseY, title);
@@ -368,6 +381,7 @@ int NewText_Parse(u8 *scene) {
         extern u32 subStackPtr;
         subStackPtr = 0;
         s2d_colorstack_top = 0;
+        NT_SkipToEnd = 0;
         return 0;
     }
 
@@ -375,8 +389,10 @@ int NewText_Parse(u8 *scene) {
 
     switch (nt_cmd) {
         case NT_SAY:
+        case NT_RECALL:
             // this is gonna be epic
             if (NewText_RenderText(*(u32 *)(NewText_Cursor + 4))) proceed = 1;
+            
             break;
         case NT_ALIGN:
             NewText_CurAlign = NewText_Cursor[3];
@@ -394,6 +410,7 @@ int NewText_Parse(u8 *scene) {
             isUnskippable = FALSE;
             subStackPtr = 0;
             s2d_colorstack_top = 0;
+            NT_SkipToEnd = 0;
             if (NT_ReadController() & (A_BUTTON | B_BUTTON)) {
                 proceed = 1;
             }
@@ -434,9 +451,6 @@ int NewText_Parse(u8 *scene) {
             u32 fp = *(u32*)(NewText_Cursor + 4);
             if (((int (*)())fp)());
             proceed = 1;
-            break;
-        case NT_RECALL:
-            if (NewText_RenderText(*(u32 *)(NewText_Cursor + 4))) proceed = 1;
             break;
         case NT_SOUND:
             play_sound(*(u32 *)(NewText_Cursor + 4), gGlobalSoundSource);
