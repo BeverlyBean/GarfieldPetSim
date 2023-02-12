@@ -483,7 +483,7 @@ s32 act_reading_sign(struct MarioState *m) {
         // start dialog
         case 0:
             trigger_cutscene_dialog(1);
-            enable_time_stop();
+            // enable_time_stop();
             // reading sign
             set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
             m->actionState = ACT_STATE_READING_SIGN_TURN_TOWARD_SIGN;
@@ -500,7 +500,7 @@ s32 act_reading_sign(struct MarioState *m) {
             break;
         case ACT_STATE_READING_SIGN_IN_DIALOG:
             // dialog finished
-            if (gCamera->cutscene == CUTSCENE_NONE) {
+            if (gCamera->cutscene == 0) {
                 disable_time_stop();
                 set_mario_action(m, ACT_IDLE, 0);
             }

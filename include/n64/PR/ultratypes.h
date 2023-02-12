@@ -32,7 +32,7 @@
 /**********************************************************************
  * General data types for R4300
  */
-
+#ifdef _LANGUAGE_C
 typedef signed char            s8;
 typedef unsigned char          u8;
 typedef signed short int       s16;
@@ -76,7 +76,7 @@ typedef volatile s8   vs8;
 typedef volatile s16 vs16;
 typedef volatile s32 vs32;
 typedef volatile s64 vs64;
-
+#endif // _Language_C
 
 /*************************************************************************
  * Common definitions

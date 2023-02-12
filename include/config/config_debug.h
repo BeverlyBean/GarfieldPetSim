@@ -26,7 +26,7 @@
 // Enables debug free move (D-pad up to enter, A to exit).
 #define ENABLE_DEBUG_FREE_MOVE
 
-// Enables a custom, enhanced performance profiler. (Enables PUPPYPRINT by default in config_safeguards).
+// Include a custom, enhanced performance profiler. (Enables PUPPYPRINT by default in config_safeguards).
 // #define PUPPYPRINT_DEBUG 1
 
 // Uses cycles instead of microseconds in Puppyprint debug output.
@@ -50,8 +50,8 @@
 // Removes the limit on FPS.
 // #define UNLOCK_FPS
 
-// Includes vanilla debug functionality.
-// #define VANILLA_DEBUG
+// Include vanilla debug functionality.
+#define VANILLA_DEBUG
 
 // Forces a crash when the game starts. Useful for debugging the crash screen.
 // #define DEBUG_FORCE_CRASH_ON_BOOT

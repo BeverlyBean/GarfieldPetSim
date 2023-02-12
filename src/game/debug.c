@@ -398,32 +398,12 @@ void stub_debug_control(void) {
  * information depending on the debug sys ID. Additional information (updated obj
  * count, floor misses, and an unknown wall counter) is also printed.
  */
+
+extern u8 NT_Testscene1[];
 void try_print_debug_mario_object_info(void) {
-    if (gMarioObject != NULL) {
-        switch (sDebugPage) {
-            case DEBUG_PAGE_CHECKSURFACEINFO:
-                print_surfaceinfo();
-                break;
-            case DEBUG_PAGE_EFFECTINFO:
-                print_effectinfo();
-                break;
-            case DEBUG_PAGE_ENEMYINFO:
-                print_enemyinfo();
-                break;
-            default:
-                break;
-        }
-    }
-
-    print_debug_top_down_mapinfo("obj  %d", gObjectCounter);
-
-    if (gNumFindFloorMisses != 0) {
-        print_debug_bottom_up("NULLBG %d", gNumFindFloorMisses);
-    }
-
-    if (gUnknownWallCount != 0) {
-        print_debug_bottom_up("WALL   %d", gUnknownWallCount);
-    }
+    // if (gPlayer1Controller->buttonDown & Z_TRIG) {
+    //     NewText_Parse(NT_Testscene1);
+    // }
 }
 
 /*
